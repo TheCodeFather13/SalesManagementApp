@@ -1,9 +1,17 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.EntityFrameworkCore;
 using SalesManagementApp.Data;
+using SalesManagementApp.Services;
+using SalesManagementApp.Services.Contracts;
 using Syncfusion.Blazor;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var connectionString = builder.Configuration.GetConnectionString("SalesManagementDbConnection")
+                                ?? throw new InvalidOperationException("Connection 'SalesManagementDbConnection' not found!");
+
+builder.Services.AddDbContext<SalesManagementDbContext>(options => options.UseSqlServer(connectionString));
 
 // Add services to the container.
 builder.Services.AddRazorPages();
@@ -11,6 +19,8 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
 
 builder.Services.AddSyncfusionBlazor();
+
+builder.Services.AddScoped<IEmployeeManagementService, EmployeeManagementService>();
 
 var app = builder.Build();
 Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Mgo+DSMBaFt/QHNqVVhkW1pFdEBBXHxAd1p/VWJYdVt5flBPcDwsT3RfQF9iSX9Sd0VnW39fdXVURw==;NzM2NDc0QDMyMzAyZTMzMmUzMGFPbTYremxxUEpBS1g1UW1oenU4dE93SjlxY1BUa2UrTDQwYzRNa2c2c3M9");
