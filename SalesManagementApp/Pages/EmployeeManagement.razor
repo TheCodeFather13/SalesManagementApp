@@ -3,21 +3,22 @@
 @using SalesManagementApp.Models
 @using SalesManagementApp.Services.Contracts
 @using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Navigations
 
 @inject IEmployeeManagementService EmployeeManagementService
    
 <h3 class="mb-4">Employee Administration</h3>
 
 <div style="max-width:1100px">
-    <SfGrid @ref="SfEmployeeGrid" AllowSorting="true" DataSource="employeeData" Toolbar="@toolbar">
+    <SfGrid @ref="SfEmployeeGrid" AllowPdfExport="true" AllowExcelExport="true" AllowSorting="true" DataSource="employeeData" Toolbar="@toolbar">
         <GridEditSettings AllowAdding = "true" AllowEditing ="true" AllowDeleting = "true"></GridEditSettings>
-          <GridEvents OnActionBegin="ActionBeginHandler" OnActionComplete="ActionCompleteHandler" TValue="EmployeeModel"></GridEvents>
+          <GridEvents OnToolbarClick="ToolbarBtnClickHandler" OnActionBegin="ActionBeginHandler" OnActionComplete="ActionCompleteHandler" TValue="EmployeeModel"></GridEvents>
        
         <GridColumns>
 
               <GridColumn AllowAdding="false" IsPrimaryKey="true" Field="@nameof(EmployeeModel.Id)" Width="50px"></GridColumn>
             
-              <GridColumn HeaderText="Profile" Width="120px">
+              <GridColumn HeaderText="Profile" Width="90px">
                   <Template>
                     @{
                         var employee = (context as EmployeeModel);
@@ -28,8 +29,8 @@
                   </Template>
               </GridColumn>
 
-              <GridColumn HeaderText="First Name" Field="@nameof(EmployeeModel.FirstName)" Width="120px"></GridColumn>           
-              <GridColumn HeaderText="Last Name" Field="@nameof(EmployeeModel.LastName)" Width="120px"></GridColumn>
+              <GridColumn HeaderText="First Name" Field="@nameof(EmployeeModel.FirstName)" Width="90px"></GridColumn>           
+              <GridColumn HeaderText="Last Name" Field="@nameof(EmployeeModel.LastName)" Width="90px"></GridColumn>
            
             <GridForeignColumn HeaderText="Designation" TValue="EmployeeJobTitle" 
                                         Field="@nameof(EmployeeModel.EmployeeJobTitleId)"
@@ -55,15 +56,15 @@
                     </Syncfusion.Blazor.DropDowns.SfDropDownList>
                 </EditTemplate>
             </GridColumn>
-            <GridColumn Field="@nameof(EmployeeModel.Email)" Width="120px">
+            <GridColumn Field="@nameof(EmployeeModel.Email)" Width="185px">
 
             </GridColumn>
-            <GridColumn HeaderText="DOB" Field="@nameof(EmployeeModel.DateOfBirth)" Format="d"></GridColumn>
+            <GridColumn HeaderText="DOB" Field="@nameof(EmployeeModel.DateOfBirth)" Format="d" Width="90px"></GridColumn>
             
             <GridForeignColumn HeaderText="Reports To" TValue="ReportToModel" 
                                         Field="@nameof(EmployeeModel.ReportToEmpId)"
                                         ForeignDataSource="reportToEmployeeData"
-                                        ForeignKeyValue="ReportToName" Width="130px">
+                                        ForeignKeyValue="ReportToName" Width="100px">
                 <EditTemplate>
                     <Syncfusion.Blazor.DropDowns.SfDropDownList @bind-value ="@((context as EmployeeModel).ReportToEmpId)" 
                                             ID="ReportToEmpId"
@@ -112,7 +113,9 @@
     private List<EmployeeModel>? employeeData = null;
     private List<EmployeeJobTitle>? employeeJobTitleData;
     private List<ReportToModel>? reportToEmployeeData;
-    private List<object> toolbar = new List<object> { "Add", "Edit", "Delete", "Update", "Cancel", "Search" };
+    private List<object> toolbar = new List<object> { "Add", "Edit", "Delete", "Update", "Cancel", "Search", "ExcelExport", "PdfExport",
+                                                    new ItemModel(){Text="XML Export",TooltipText="Export Data to XML"
+                                                                    ,PrefixIcon="e-click", Id="XmlExport"}};
 
     protected override async Task OnInitializedAsync()
     {
@@ -152,7 +155,23 @@
                 employeeData = await EmployeeManagementService.GetEmployees();
                 SfEmployeeGrid?.Refresh();
             }
-            
+
+        }
+    }
+
+    public async void ToolbarBtnClickHandler(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        if(args.Item.Id.Contains("_excelexport"))
+        {
+            await SfEmployeeGrid?.ExportToExcelAsync();
+        }
+        else if(args.Item.Id.Contains("_pdfexport"))
+        {
+            await SfEmployeeGrid?.ExportToPdfAsync();
+        }
+        else if(args.Item.Id == "XmlExport")
+        {
+            Console.Write("Export to Xml functionality");
         }
     }
 }
