@@ -16,6 +16,40 @@ namespace SalesManagementApp.Services
             _salesManagementDbContext = salesManagementDbContext;
         }
 
+        public async Task<Employee> AddEmployee(EmployeeModel employeeModel)
+        {
+            try
+            {
+                Employee employeeToAdd = employeeModel.Convert();
+                var result = await _salesManagementDbContext.Employees.AddAsync(employeeToAdd);
+                await _salesManagementDbContext.SaveChangesAsync();
+                return result.Entity;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        public async Task DeleteEmployee(int id)
+        {
+            try
+            {
+                var employeeToDelete = await _salesManagementDbContext.Employees.FindAsync(id);
+                if(employeeToDelete != null)
+                {
+                    _salesManagementDbContext.Employees.Remove(employeeToDelete);
+                    await _salesManagementDbContext.SaveChangesAsync();
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
         public async Task<List<EmployeeModel>> GetEmployees()
         {
             try
@@ -34,6 +68,56 @@ namespace SalesManagementApp.Services
             try
             {
                 return await _salesManagementDbContext.EmployeeJobTitles.ToListAsync();
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        public async Task<List<ReportToModel>> GetReportToEmployees()
+        {
+            try
+            {
+                var employees = await (from e in _salesManagementDbContext.Employees
+                                       join j in _salesManagementDbContext.EmployeeJobTitles
+                                       on e.EmployeeJobTitleId equals j.EmployeeJobTitleId
+                                       where j.Name.ToUpper() == "TL" || j.Name.ToUpper() == "SM"
+                                       select new ReportToModel
+                                       {
+                                           ReportToEmpId = e.Id,
+                                           ReportToName = e.FirstName + " " + e.LastName.Substring(0,1).ToUpper() + "."
+                                       }).ToListAsync();
+
+                employees.Add(new ReportToModel { ReportToEmpId = null, ReportToName = "<None>" });
+                return employees.OrderBy(o => o.ReportToEmpId).ToList();
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        public async Task UpdateEmployee(EmployeeModel employeeModel)
+        {
+            try
+            {
+                var employeeToUpdate = await _salesManagementDbContext.Employees.FindAsync(employeeModel.Id);
+                if(employeeToUpdate != null)
+                {
+                    employeeToUpdate.FirstName = employeeModel.FirstName;
+                    employeeToUpdate.LastName = employeeModel.LastName;
+                    employeeToUpdate.ReportToEmpId = employeeModel.ReportToEmpId;
+                    employeeToUpdate.DateOfBirth = employeeModel.DateOfBirth;
+                    employeeToUpdate.ImagePath = employeeModel.ImagePath;
+                    employeeToUpdate.Gender = employeeModel.Gender;
+                    employeeToUpdate.Email = employeeModel.Email;
+                    employeeToUpdate.EmployeeJobTitleId = employeeModel.EmployeeJobTitleId;
+
+                    await _salesManagementDbContext.SaveChangesAsync();
+                }
             }
             catch (Exception)
             {
