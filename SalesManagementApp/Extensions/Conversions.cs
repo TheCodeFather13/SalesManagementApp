@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SalesManagementApp.Data;
 using SalesManagementApp.Entities;
 using SalesManagementApp.Models;
 
@@ -37,6 +38,44 @@ namespace SalesManagementApp.Extensions
                 ImagePath = employeeModel.Gender.ToUpper() == "MALE" ? "/Images/Profile/MaleDefault.jpg"
                                                                      : "/Images/Profile/FemaleDefault.jpg"
             };
+        }
+
+        public static async Task<List<ProductModel>> Convert(this IQueryable<Product> Products,
+                                                             SalesManagementDbContext context)
+        {
+            return await (from prod in Products
+                          join prodCat in context.ProductCategories
+                          on prod.CategoryId equals prodCat.Id
+                          select new ProductModel
+                          {
+                              Id = prod.Id,
+                              Name = prod.Name,
+                              Description = prod.Description,
+                              ImagePath= prod.ImagePath,
+                              Price = prod.Price,
+                              CategoryId = prod.CategoryId,
+                              CategoryName = prod.Name
+                          }).ToListAsync();
+        }
+
+        public static async Task<List<ClientModel>> Convert(this IQueryable<Client> clients,
+                                                            SalesManagementDbContext context)
+        {
+            return await (from c in clients
+                          join r in context.RetailOutlets
+                          on c.RetailOutletId equals r.Id
+                          select new ClientModel
+                          {
+                              Id = c.Id,
+                              Email = c.Email,
+                              FirstName = c.FirstName,
+                              LastName = c.LastName,
+                              JobTitle = c.JobTitle,
+                              PhoneNumber = c.PhoneNumber,
+                              RetailOutletId = c.RetailOutletId,
+                              RetailOutletLocation = r.Location,
+                              RetailOutletName = r.Name
+                          }).ToListAsync();
         }
     }
 }

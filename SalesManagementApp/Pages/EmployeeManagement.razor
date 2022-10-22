@@ -1,7 +1,5 @@
 ﻿@page "/EmployeeManagement"
-@using SalesManagementApp.Entities
-@using SalesManagementApp.Models
-@using SalesManagementApp.Services.Contracts
+
 @using Syncfusion.Blazor.Grids
 @using Syncfusion.Blazor.Navigations
 
@@ -10,15 +8,28 @@
 <h3 class="mb-4">Employee Administration</h3>
 
 <div style="max-width:1100px">
-    <SfGrid @ref="SfEmployeeGrid" AllowPdfExport="true" AllowExcelExport="true" AllowSorting="true" DataSource="employeeData" Toolbar="@toolbar">
-        <GridEditSettings AllowAdding = "true" AllowEditing ="true" AllowDeleting = "true"></GridEditSettings>
-          <GridEvents OnToolbarClick="ToolbarBtnClickHandler" OnActionBegin="ActionBeginHandler" OnActionComplete="ActionCompleteHandler" TValue="EmployeeModel"></GridEvents>
+    <SfGrid @ref="SfEmployeeGrid" AllowFiltering="true" AllowGrouping="true" AllowPaging="true" AllowPdfExport="true" AllowExcelExport="true" AllowSorting="true" DataSource="employeeData" Toolbar="@toolbar">
+        <GridEditSettings Mode="EditMode.Batch" AllowAdding = "true" AllowEditing ="true" AllowDeleting = "true">
+            <HeaderTemplate>
+                <span>@(GetDialogHeaderText(context as EmployeeModel))</span>
+            </HeaderTemplate>
+
+            <FooterTemplate>
+                <Syncfusion.Blazor.Buttons.SfButton OnClick="@Save" IsPrimary="true">
+                    @DialogButtonCaption
+                </Syncfusion.Blazor.Buttons.SfButton>
+                <Syncfusion.Blazor.Buttons.SfButton OnClick="@Cancel">Cancel</Syncfusion.Blazor.Buttons.SfButton>
+            </FooterTemplate>
+        </GridEditSettings>
+        <GridPageSettings PageSize="5"></GridPageSettings>
+        <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Menu"></GridFilterSettings>
+          <GridEvents OnBatchSave="OnBatchUpdateHandler" OnToolbarClick="ToolbarBtnClickHandler" OnActionBegin="ActionBeginHandler" OnActionComplete="ActionCompleteHandler" TValue="EmployeeModel"></GridEvents>
        
         <GridColumns>
 
               <GridColumn AllowAdding="false" IsPrimaryKey="true" Field="@nameof(EmployeeModel.Id)" Width="50px"></GridColumn>
             
-              <GridColumn HeaderText="Profile" Width="90px">
+              <GridColumn AllowAdding="false" AllowEditing="false" HeaderText="Profile" Width="90px">
                   <Template>
                     @{
                         var employee = (context as EmployeeModel);
@@ -76,6 +87,35 @@
                     </Syncfusion.Blazor.DropDowns.SfDropDownList>       
                 </EditTemplate>
             </GridForeignColumn>
+
+            <GridColumn HeaderText="Operations" Width="110">
+                <GridCommandColumns>
+                    <GridCommandColumn Type="CommandButtonType.Edit"
+                                             ButtonOption="@(new CommandButtonOptions(){
+                                             IconCss = "e-icons e-edit",
+                                             CssClass = "e-flat"})">
+                    </GridCommandColumn>
+
+                     <GridCommandColumn Type="CommandButtonType.Delete"
+                                             ButtonOption="@(new CommandButtonOptions(){
+                                             IconCss = "e-icons e-delete",
+                                             CssClass = "e-flat"})">
+                    </GridCommandColumn>
+
+                     <GridCommandColumn Type="CommandButtonType.Save"
+                                             ButtonOption="@(new CommandButtonOptions(){
+                                             IconCss = "e-icons e-update",
+                                             CssClass = "e-flat"})">
+                    </GridCommandColumn>
+
+                     <GridCommandColumn Type="CommandButtonType.Cancel"
+                                             ButtonOption="@(new CommandButtonOptions(){
+                                             IconCss = "e-icons e-cancel-icon",
+                                             CssClass = "e-flat"})">
+                    </GridCommandColumn>
+
+                </GridCommandColumns>
+            </GridColumn>
                 
         </GridColumns>
         <Syncfusion.Blazor.Spinner.SfSpinner @bind-Visible="@VisibleProp" Label="Loading... Please wait"></Syncfusion.Blazor.Spinner.SfSpinner>
@@ -105,6 +145,8 @@
         Other
     }
 
+    private string DialogButtonCaption { get; set; }
+
     private SfGrid<EmployeeModel>? SfEmployeeGrid { get; set; }
 
     private bool VisibleProp { get; set; } = false;
@@ -113,7 +155,7 @@
     private List<EmployeeModel>? employeeData = null;
     private List<EmployeeJobTitle>? employeeJobTitleData;
     private List<ReportToModel>? reportToEmployeeData;
-    private List<object> toolbar = new List<object> { "Add", "Edit", "Delete", "Update", "Cancel", "Search", "ExcelExport", "PdfExport",
+    private List<object> toolbar = new List<object> { "Add", "Update", "Cancel", "Search", "ExcelExport", "PdfExport",
                                                     new ItemModel(){Text="XML Export",TooltipText="Export Data to XML"
                                                                     ,PrefixIcon="e-click", Id="XmlExport"}};
 
@@ -172,6 +214,52 @@
         else if(args.Item.Id == "XmlExport")
         {
             Console.Write("Export to Xml functionality");
+        }
+    }
+
+    private string GetDialogHeaderText(EmployeeModel employeeModel)
+    {
+        if(employeeModel.Id == 0)
+        {
+            DialogButtonCaption = "Add";
+            return "Add Employee";
+        }
+        else
+        {
+            DialogButtonCaption = "Update";
+            return $"Edit Details: {employeeModel.FirstName} {employeeModel.LastName}";
+        }
+    }
+
+    private async Task Cancel()
+    {
+        await SfEmployeeGrid.CloseEditAsync();
+    }
+
+    private async Task Save()
+    {
+        await SfEmployeeGrid.EndEditAsync();
+    }
+
+    public async Task OnBatchUpdateHandler(BeforeBatchSaveArgs<EmployeeModel> args)
+    {
+        var addedRecords = args.BatchChanges.AddedRecords;
+        var updatedRecords = args.BatchChanges.ChangedRecords;
+        var deletedRecords = args.BatchChanges.DeletedRecords;
+
+        foreach (EmployeeModel employee in addedRecords)
+        {
+            await EmployeeManagementService.AddEmployee(employee);
+        }
+
+        foreach (EmployeeModel employee in updatedRecords)
+        {
+            await EmployeeManagementService.UpdateEmployee(employee);
+        }
+
+        foreach (EmployeeModel employee in deletedRecords)
+        {
+            await EmployeeManagementService.DeleteEmployee(employee.Id);
         }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalesManagementApp.Data;
 
@@ -11,9 +12,10 @@ using SalesManagementApp.Data;
 namespace SalesManagementApp.Migrations
 {
     [DbContext(typeof(SalesManagementDbContext))]
-    partial class SalesManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221022094925_SeedProductData")]
+    partial class SeedProductData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,84 +23,6 @@ namespace SalesManagementApp.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
-
-            modelBuilder.Entity("SalesManagementApp.Entities.Client", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("JobTitle")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("RetailOutletId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Clients");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Email = "james.tailor@company.com",
-                            FirstName = "James",
-                            JobTitle = "Buyer",
-                            LastName = "Tailor",
-                            PhoneNumber = "079564377",
-                            RetailOutletId = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Email = "jill.hutton@company.com",
-                            FirstName = "Jill",
-                            JobTitle = "Buyer",
-                            LastName = "Hutton",
-                            PhoneNumber = "070583327",
-                            RetailOutletId = 2
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Email = "craig.rice@company.com",
-                            FirstName = "Craig",
-                            JobTitle = "Buyer",
-                            LastName = "Rice",
-                            PhoneNumber = "069447821",
-                            RetailOutletId = 3
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Email = "amy.smith@company.com",
-                            FirstName = "Amy",
-                            JobTitle = "Buyer",
-                            LastName = "Smith",
-                            PhoneNumber = "079753210",
-                            RetailOutletId = 4
-                        });
-                });
 
             modelBuilder.Entity("SalesManagementApp.Entities.Employee", b =>
                 {
@@ -338,59 +262,6 @@ namespace SalesManagementApp.Migrations
                             Description = "Sales Rep",
                             Name = "SR"
                         });
-                });
-
-            modelBuilder.Entity("SalesManagementApp.Entities.Order", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("ClientId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("EmployeeId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("OrderDateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Orders");
-                });
-
-            modelBuilder.Entity("SalesManagementApp.Entities.OrderItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("SalesManagementApp.Entities.Product", b =>
@@ -637,53 +508,6 @@ namespace SalesManagementApp.Migrations
                         {
                             Id = 5,
                             Name = "Boots"
-                        });
-                });
-
-            modelBuilder.Entity("SalesManagementApp.Entities.RetailOutlet", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("Location")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("RetailOutlets");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Location = "TX",
-                            Name = "Texas Outdoor Store"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Location = "CA",
-                            Name = "California Outdoor Store"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Location = "NY",
-                            Name = "New York Outdoor Store"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Location = "WA",
-                            Name = "Washington Outdoor Store"
                         });
                 });
 #pragma warning restore 612, 618
