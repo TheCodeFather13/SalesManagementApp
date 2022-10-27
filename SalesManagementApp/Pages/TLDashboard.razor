@@ -84,7 +84,15 @@
                 <ContentTemplate>
                     @if (isLayoutRender)
                     {
-     
+                            <SfChart @ref="chart2" Title="Qty / Month">
+                                <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category"></ChartPrimaryXAxis>
+                                <ChartSeriesCollection>
+                                    <ChartSeries DataSource="@TeamQtyPerMonthData" XName="GroupedFieldKey" 
+                                                             YName="Quantity" Type="ChartSeriesType.Line">
+
+                                    </ChartSeries>
+                                </ChartSeriesCollection>
+                            </SfChart>
                     }
                 </ContentTemplate>
             </DashboardLayoutPanel>
