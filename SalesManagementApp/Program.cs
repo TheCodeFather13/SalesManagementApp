@@ -5,6 +5,7 @@ using SalesManagementApp.Data;
 using SalesManagementApp.Services;
 using SalesManagementApp.Services.Contracts;
 using Syncfusion.Blazor;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,10 @@ var connectionString = builder.Configuration.GetConnectionString("SalesManagemen
                                 ?? throw new InvalidOperationException("Connection 'SalesManagementDbConnection' not found!");
 
 builder.Services.AddDbContext<SalesManagementDbContext>(options => options.UseSqlServer(connectionString));
+
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<SalesManagementDbContext>();
 
 // Add services to the container.
 builder.Services.AddRazorPages();
@@ -27,6 +32,8 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ISalesOrderReportService, SalesOrderReportService>();
 builder.Services.AddScoped<IOrganisationService, OrganisationService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+
+builder.Services.AddScoped<TokenProvider>();
 
 var app = builder.Build();
 Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Mgo+DSMBaFt/QHNqVVhkW1pFdEBBXHxAd1p/VWJYdVt5flBPcDwsT3RfQF9iSX9Sd0VnW39fdXVURw==;NzM2NDc0QDMyMzAyZTMzMmUzMGFPbTYremxxUEpBS1g1UW1oenU4dE93SjlxY1BUa2UrTDQwYzRNa2c2c3M9");
@@ -46,7 +53,11 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
+app.UseAuthentication();;
 
 app.Run();

@@ -1,5 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.EntityFrameworkCore;
 using SalesManagementApp.Data;
+using SalesManagementApp.Entities;
+using SalesManagementApp.Extensions;
 using SalesManagementApp.Models.ReportModels;
 using SalesManagementApp.Services.Contracts;
 
@@ -8,10 +11,13 @@ namespace SalesManagementApp.Services
     public class SalesOrderReportService : ISalesOrderReportService
     {
         private readonly SalesManagementDbContext _salesManagementDbContext;
+        private readonly AuthenticationStateProvider _authenticationStateProvider;
 
-        public SalesOrderReportService(SalesManagementDbContext salesManagementDbContext)
+        public SalesOrderReportService(SalesManagementDbContext salesManagementDbContext, 
+                                        AuthenticationStateProvider authenticationStateProvider)
         {
             _salesManagementDbContext = salesManagementDbContext;
+            _authenticationStateProvider = authenticationStateProvider;
         }
 
         // SR
@@ -19,6 +25,8 @@ namespace SalesManagementApp.Services
         {
             try
             {
+                var employee = await GetLoggedOnEmployee();
+
                 var reportData = await (from s in _salesManagementDbContext.SalesOrderReports
                                         where s.EmployeeId == 9
                                         group s by s.OrderDateTime.Month into GroupedData
@@ -53,9 +61,9 @@ namespace SalesManagementApp.Services
         {
             try
             {
-                List<int> teamMemberIds = await GetTeamMemberIds(3);
+                var employee = await GetLoggedOnEmployee();
                 var reportData = await(from s in _salesManagementDbContext.SalesOrderReports
-                                       where teamMemberIds.Contains(s.EmployeeId)
+                                       where s.EmployeeId == employee.Id
                                        group s by s.OrderDateTime.Month into GroupedData
                                        orderby GroupedData.Key
                                        select new GroupedFieldQtyModel
@@ -88,7 +96,9 @@ namespace SalesManagementApp.Services
         {
             try
             {
+                var employee = await GetLoggedOnEmployee();
                 var reportData = await (from s in _salesManagementDbContext.SalesOrderReports
+                                        where s.EmployeeId == employee.Id
                                         group s by s.ProductCategoryName into GroupedData
                                         orderby GroupedData.Key
                                         select new GroupedFieldQtyModel
@@ -110,7 +120,8 @@ namespace SalesManagementApp.Services
         {
             try
             {
-                List<int> teamMemberIds = await GetTeamMemberIds(3);
+                var employee = await GetLoggedOnEmployee();
+                List<int> teamMemberIds = await GetTeamMemberIds(employee.Id);
 
                 var reportData = await (from s in _salesManagementDbContext.SalesOrderReports
                                         where teamMemberIds.Contains(s.EmployeeId)
@@ -134,7 +145,8 @@ namespace SalesManagementApp.Services
         {
             try
             {
-                List<int> teamMemberIds = await GetTeamMemberIds(3);
+                var employee = await GetLoggedOnEmployee();
+                List<int> teamMemberIds = await GetTeamMemberIds(employee.Id);
                 var reportData = await (from s in _salesManagementDbContext.SalesOrderReports
                                         where teamMemberIds.Contains(s.EmployeeId)
                                         group s by s.EmployeeFirstName into GroupedData
@@ -155,7 +167,8 @@ namespace SalesManagementApp.Services
         }
         public async Task<List<GroupedFieldQtyModel>> GetTeamQtyPerMonthData()
         {
-            List<int> teamMemberIds = await GetTeamMemberIds(3);
+            var employee = await GetLoggedOnEmployee();
+            List<int> teamMemberIds = await GetTeamMemberIds(employee.Id);
             var reportData = await(from s in _salesManagementDbContext.SalesOrderReports
                                    where teamMemberIds.Contains(s.EmployeeId)
                                    group s by s.OrderDateTime.Month into GroupedData
@@ -206,7 +219,6 @@ namespace SalesManagementApp.Services
                 throw;
             }
         }
-
         public async Task<List<GroupedFieldQtyModel>> GetQtyPerLocationData()
         {
             try
@@ -228,7 +240,6 @@ namespace SalesManagementApp.Services
                 throw;
             }
         }
-
         public async Task<List<MonthLocationModel>> GetQtyPerMonthLocationData()
         {
             var reportData = await (from s in _salesManagementDbContext.SalesOrderReports
@@ -268,6 +279,12 @@ namespace SalesManagementApp.Services
             return teamMemberIds;
         }
 
-        
+        private async Task<Employee> GetLoggedOnEmployee()
+        {
+            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            return await user.GetEmployeeObject(_salesManagementDbContext);
+        }
     }
 }

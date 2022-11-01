@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.EntityFrameworkCore;
 using SalesManagementApp.Data;
 using SalesManagementApp.Entities;
+using SalesManagementApp.Extensions;
 using SalesManagementApp.Models;
 using SalesManagementApp.Services.Contracts;
 
@@ -9,10 +11,13 @@ namespace SalesManagementApp.Services
     public class OrderService : IOrderService
     {
         private readonly SalesManagementDbContext _salesManagementDbContext;
+        private readonly AuthenticationStateProvider _authenticationStateProvider;
 
-        public OrderService(SalesManagementDbContext salesManagementDbContext)
+        public OrderService(SalesManagementDbContext salesManagementDbContext, 
+                            AuthenticationStateProvider authenticationStateProvider)
         {
             _salesManagementDbContext = salesManagementDbContext;
+            _authenticationStateProvider = authenticationStateProvider;
         }
 
 
@@ -20,11 +25,13 @@ namespace SalesManagementApp.Services
         {
             try
             {
+                var employee = await GetLoggedOnEmployee();
+
                 Order order = new Order
                 {
                     OrderDateTime = DateTime.UtcNow,
                     ClientId = orderModel.ClientId,
-                    EmployeeId = 9,
+                    EmployeeId = employee.Id,
                     Price = orderModel.OrderItems.Sum(o => o.Price),
                     Quantity = orderModel.OrderItems.Sum(o => o.Quantity)
                 };
@@ -98,6 +105,14 @@ namespace SalesManagementApp.Services
 
                 throw;
             }
+        }
+
+        private async Task<Employee> GetLoggedOnEmployee()
+        {
+            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            return await user.GetEmployeeObject(_salesManagementDbContext);
         }
     }
 }
